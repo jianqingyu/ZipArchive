@@ -213,6 +213,10 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 }
 
 #pragma mark - Unzipping
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination needPath:(nonnull NSString *)needPath overwrite:(BOOL)overwrite password:(nullable NSString *)password error:(NSError *__autoreleasing  _Nullable * _Nullable)error
+{
+    return [self unzipFileAtPath:path toDestination:destination needPath:needPath preserveAttributes:YES overwrite:overwrite symlinksValidWithin:destination nestedZipLevel:0 password:password error:error delegate:nil progressHandler:nil completionHandler:nil];
+}
 
 + (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination
 {
@@ -294,6 +298,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 {
     return [self unzipFileAtPath:path
                    toDestination:destination
+		        needPath:@""
               preserveAttributes:preserveAttributes
                        overwrite:overwrite
          symlinksValidWithin:destination
@@ -308,6 +313,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
 
 + (BOOL)unzipFileAtPath:(NSString *)path
           toDestination:(NSString *)destination
+	       needPath:(NSString *)needPath
      preserveAttributes:(BOOL)preserveAttributes
               overwrite:(BOOL)overwrite
     symlinksValidWithin:(nullable NSString *)symlinksValidWithin
@@ -513,7 +519,14 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                 ret = unzGoToNextFile(zip);
                 continue;
             }
-            
+            // 新增解压指定文件
+            if (needPath.length>0&&![strPath isEqualToString:needPath]){
+                unzCloseCurrentFile(zip);
+                ret = unzGoToNextFile(zip);
+                free(filename);
+                continue;
+            }
+	    
             if (isDirectory && !fileIsSymbolicLink) {
                 // nothing to read/write for a directory
             } else if (!fileIsSymbolicLink) {
@@ -550,6 +563,7 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                             && [fullPath.pathExtension.lowercaseString isEqualToString:@"zip"]
                             && [self unzipFileAtPath:fullPath
                                        toDestination:fullPath.stringByDeletingLastPathComponent
+				       	    needPath:needPath
                                   preserveAttributes:preserveAttributes
                                            overwrite:overwrite
                                  symlinksValidWithin:symlinksValidWithin
