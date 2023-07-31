@@ -474,7 +474,13 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                 free(filename);
                 continue;
             }
-            
+            // 新增解压指定文件
+            if (needPath.length>0&&![strPath isEqualToString:needPath]){
+                unzCloseCurrentFile(zip);
+                ret = unzGoToNextFile(zip);
+                free(filename);
+                continue;
+            }
             // Check if it contains directory
             BOOL isDirectory = NO;
             if (filename[fileInfo.size_filename-1] == '/' || filename[fileInfo.size_filename-1] == '\\') {
@@ -517,13 +523,6 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
                 //FIXME: couldBe CRC Check?
                 unzCloseCurrentFile(zip);
                 ret = unzGoToNextFile(zip);
-                continue;
-            }
-            // 新增解压指定文件
-            if (needPath.length>0&&![strPath isEqualToString:needPath]){
-                unzCloseCurrentFile(zip);
-                ret = unzGoToNextFile(zip);
-                free(filename);
                 continue;
             }
 	    
