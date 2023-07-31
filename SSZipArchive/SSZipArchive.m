@@ -3,7 +3,7 @@
 //  SSZipArchive
 //
 //  Created by Sam Soffes on 7/21/10.
-//
+//  yjq
 
 #import "SSZipArchive.h"
 #include "minizip/mz_compat.h"
